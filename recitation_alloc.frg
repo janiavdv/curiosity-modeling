@@ -6,39 +6,39 @@ abstract sig Available {}
 one sig Y, N extends Available {}
 
 sig TimeOption {
-    pref: pfunc Student -> Available,
-    capacity: one Int
+    pref: pfunc Student -> Available
 }
 
 one sig Allocation {
     alloc: pfunc Student -> TimeOption
 }
 
+-- A wellformed instance is one where every student gets assigned to some section
 pred wellformed {
-    all t: TimeOption | {
-        t.capacity > 0 and t.capacity <= 7 
-    }
     all s: Student | {
         some Allocation.alloc[s]
     }   
 }
 
--- The student has selected an availability option (Y/N) for each time
-pred filledOutForm {
-    all t: TimeOption | {
-        all s: Student | {
-            some t.pref[s]
-        }
-    }
-}
+// -- The student has selected an availability option (Y/N) for each time
+// pred filledOutForm {
+//     all t: TimeOption | {
+//         all s: Student | {
+//             some t.pref[s]
+//         }
+//     }
+// }
 
--- Every student has at least one available time
+-- Every student has at least one available time and one not avaliable time 
+-- They also have a preference for every time.
 pred isAvailable {
     all s: Student | {
-        some t: TimeOption | t.pref[s] = Y
+        all t: TimeOption | some t.pref[s]
+        some disj t1, t2: TimeOption | t1.pref[s] = Y and t2.pref[s] = N
     }
 }
 
+-- Every student is allocated to a section that they marked as having a preference for
 pred validAlloc {
     all s: Student | {
         all t: TimeOption {
@@ -47,16 +47,19 @@ pred validAlloc {
     }
 }
 
-pred underCapacity {
+-- Each section has at least 1 student, and two sections cannot differ by more than 2 students in size.
+pred balancedAttendance {
     all t: TimeOption | {
-        #{s: Student | Allocation.alloc[s] = t} <= t.capacity   
+        some s: Student | Allocation.alloc[s] = t
+    }
+    all disj t1, t2: TimeOption | {
+        subtract[#{s: Student | Allocation.alloc[s] = t1}, #{s: Student | Allocation.alloc[s] = t2}] <= 2
     }
 }
 
 run {
-  wellformed 
-  filledOutForm
-  isAvailable
-  validAlloc
-  underCapacity
-} for exactly 3 TimeOption, exactly 18 Student
+    wellformed
+    isAvailable
+    validAlloc
+    balancedAttendance
+} for exactly 3 TimeOption, exactly 15 Student
