@@ -20,15 +20,6 @@ pred wellformed {
     }   
 }
 
-// -- The student has selected an availability option (Y/N) for each time
-// pred filledOutForm {
-//     all t: TimeOption | {
-//         all s: Student | {
-//             some t.pref[s]
-//         }
-//     }
-// }
-
 -- Every student has at least one available time and one not avaliable time 
 -- They also have a preference for every time.
 pred isAvailable {
